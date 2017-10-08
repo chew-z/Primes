@@ -32,7 +32,6 @@ if __name__ == '__main__':
         sys.exit()
     N = int(sys.argv[1])
     n = 10**N
-    step = 1
     nbs = np.array([10**i for i in range(1, N + 1)])
 
     nb_benchloop = 3

@@ -5,7 +5,6 @@ import sys
 import prettyplotlib as ppl
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 
 if __name__ == '__main__':
@@ -15,38 +14,25 @@ if __name__ == '__main__':
         print("Please set loop numbers")
         sys.exit()
 
-    # Vars
     n = int(sys.argv[1])
+    N = 10**n
     div = 100
-    step = n / div
-
-    # With range
-    x = np.arange(0, n + step, step)
-    drawx = x[1:]
-    primes = libprimes.primesfrom3to(n)
+    step = N / div
+    x = np.arange(2, N, step, dtype=int)
+    ri = libprimes.Ri4(x)
+    delta = np.r_[step / np.log(step), np.diff(ri)]
+    primes = libprimes.primesfrom3to(N)
 
     # Compute histogram
-    hist = np.histogram(primes, bins=x)
+    hist = np.histogram(primes, bins=div)
     y = hist[0]
 
-    # # Fit
-    coefficients = np.polyfit(np.log(drawx), y, 1)
-    fit = np.poly1d(coefficients)
-
     # Graph
-    fig, ax = ppl.subplots(1)
-    plt.ylabel('Number primes')
-    # plt.xlabel('In (%s) range (Less than)' % libprimes.human_format(int(step)))
-
-    ppl.plot(x[1:], y, 'o', label='number primes')
-    # ppl.plot(x, fit(np.log(x)), "--", label="fit")
-
-    # Change x axis label
-    ax.get_xaxis().get_major_formatter().set_scientific(False)
-    fig.canvas.draw()
-    # ax.xaxis.set_major_formatter(ticker.FuncFormatter(libprimes.custom_ticks))
-    ax = plt.gca()
-
+    plt.ylabel('Count of primes')
+    plt.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
+    # plt.xscale('log')
+    ppl.plot(x, y, 'o', label='count of primes')
+    ppl.plot(x, delta, "--", label="Riemman function")
     ppl.legend()
     plt.grid()
     plt.show()
