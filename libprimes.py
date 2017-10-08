@@ -26,7 +26,7 @@ def factors2(n):
 
 def factors3(n):
     # with yield
-    for p in ambi_sieve(n + 1):
+    for p in primesfrom2to(n + 1):
         if n % p == 0:
             yield p  # yield
 
@@ -215,6 +215,10 @@ def mobius(n):
         return reduce(mul, [m2(n, k) for k in factors(n)], 1)
 
 
+# tuple of Mobius(k) computed outside R(x) calls
+moby = tuple(mobius(k) for k in range(1, 101))
+
+
 def li(x):
     # programmingpraxis.com/2011/07/29/approximating-pi
     # mathworld.wolfram.com/LogarithmicIntegral.html
@@ -250,10 +254,6 @@ def Ri3(x):
     # with generator ignoring k where Mobius == 0
     mob = ((k, mobius(k)) for k in range(1, 101))
     return sum(mu / k * li(pow(x, 1.0 / k)) for (k, mu) in mob if mu != 0)
-
-
-# tuple of Mobius(k) computed outside R(x) calls
-moby = tuple(mobius(k) for k in range(1, 101))
 
 
 def Ri4(x):
