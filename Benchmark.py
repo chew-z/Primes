@@ -62,7 +62,9 @@ if __name__ == '__main__':
             execute_times = t.repeat(repeat=nb_benchloop, number=1)
             benchtime = np.mean(execute_times)
             benchtimes.append(benchtime)
+        print('.', end='', flush=True)
         results[pgen] = {'benchtimes': np.array(benchtimes)}
+    print('')
     print(datetime.datetime.now().strftime(datetimeformat))
 
     fig, ax = plt.subplots(1)

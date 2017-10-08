@@ -8,3 +8,8 @@ Prime sieves come mostly from [this thread on Stackexchange](https://stackoverfl
 
 I have also added few tricks on my own.
 
+
+![Benchmark](gif/Benchmark.png?raw=true "Benchmark.py")
+
+![PlotPi](gif/PlotPi.png?raw=true "PlotPi.py")
+
