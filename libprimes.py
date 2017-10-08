@@ -156,6 +156,11 @@ def primes_simpy(n):
     return list(sieve.primerange(1, n))
 
 
+def pyprimesieve(n):
+    import pyprimesieve
+    return list(pyprimesieve.primes(n))
+
+
 def ajs_primes3a(n):
     sieve = np.ones((n), dtype=bool)
     sieve[0] = False

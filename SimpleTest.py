@@ -12,4 +12,4 @@ if __name__ == '__main__':
 
     n = int(sys.argv[1])
 
-    print(libprimes.prime6(n))
+    print(libprimes.pyprimesieve(n))

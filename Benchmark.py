@@ -19,6 +19,7 @@ primenumbers_gen = [
     'primesfrom2to',
     # 'rwh_primes2_python3',
     'prime6',
+    'pyprimesieve',
     # 'primes_simpy',
     # 'primes_bitarray',
     # 'ajs_primes3a'
@@ -52,6 +53,7 @@ if __name__ == '__main__':
         'primesfrom3to': {'color': 'b'},
         # 'primes_simpy': {'color': 'b'},
         'prime6': {'color': 'b'},
+        'pyprimesieve': {'color': 'b'},
         # 'primes_bitarray': {'color': 'b'},
         # 'ajs_primes3a': {'color': 'b'},
     }
