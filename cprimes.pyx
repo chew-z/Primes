@@ -1,6 +1,11 @@
 ''' This is for experiments with different version of pure Python3, Numpy and 
-Cypython improvements - especially latest Cython 0.27+.
-Comparing different takes on 2-3 selected sieves.'''
+Cython improvements - especially latest Cython 0.27+.
+Comparing different takes on 2-3 selected sieves.
+
+It seems that instead of improving slow algorithm with numpy and especially
+cythonization it is more way more effective to simply choose faster algo.
+
+'''
 
 import math
 import cython
@@ -12,6 +17,7 @@ import numpy as np
 from libc.math cimport sqrt
 from cpython cimport array
 import array
+
 
 def sundaram3_1(n):
     # pure python3 implementation - basic case
@@ -62,7 +68,6 @@ def sundaram3_2_1(n):
 def sundaram3_3_1(n):
     # Cython arrays from pure python3 using modern Cython arrays and views
     # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
-    # It is actually quite effective itself for larger numbers
     cdef array.array numbers = array.array('i', range(3, n + 1, 2))
     cdef int[:] numbers_view = numbers
     half = (n) // 2
@@ -82,10 +87,10 @@ def sundaram3_3_2(unsigned long long n):
     # Cython arrays from pure python3 like 3_3_1 but with declared index types
     # Not declaring index types we get Cython warning
     # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
-    # It is actually quite effective for larger numbers
+    # It is best solution so far
     cdef unsigned long long step, i
-    cdef array.array numbers = array.array('i', range(3, n + 1, 2))
-    cdef int[:] numbers_view = numbers
+    cdef array.array numbers = array.array('L', range(3, n + 1, 2))
+    cdef unsigned long long[:] numbers_view = numbers
     half = (n) // 2
     initial = 4
     for step in range(3, n + 1, 2):
@@ -103,10 +108,10 @@ def sundaram3_3_2(unsigned long long n):
 def sundaram3_3_3(unsigned long long n):
     # Cython arrays from pure python3 like 3_3_2 but with checks off
     # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
-    # It is actually most effective so far
+    # No performance gain compared to 3_3_2...
     cdef unsigned long long step, half, initial, i
-    cdef array.array numbers = array.array('i', range(3, n + 1, 2))
-    cdef int[:] numbers_view = numbers
+    cdef array.array numbers = array.array('L', range(3, n + 1, 2))
+    cdef unsigned long long[:] numbers_view = numbers
     half = (n) / 2  # here we could use / in place of // (switching cdivision)
     initial = 4
     for step in range(3, n + 1, 2):
@@ -139,31 +144,91 @@ def sundaram3_4(unsigned long long n):
             return numbers[numbers>0]
 
 
-@cython.cdivision(True)    # turn division by zero checking off
-@cython.boundscheck(False)
-def ambi_sieve(unsigned long long n):
+def ambi_sieve_1(unsigned long long n):
+    # Cythonized from pure python - very bad! Big performance penalty!
     cdef unsigned long long m
-    # cdef np.ndarray[np.longlong_t, ndim=1] s = np.arange(3, n, 2, np.longlong)
-    cdef unsigned long long [:] s_view = np.arange(3, n, 2, np.ulonglong)
-    # cdef np.ndarray[np.longlong_t, ndim=1] m_vect = np.arange(3, int(sqrt(n)) + 1, 2, np.longlong)
-    cdef unsigned long long [:] m_view = np.arange(3, int(sqrt(n)) + 1, 2, np.ulonglong)
+    cdef array.array s = array.array('L', range(3, n, 2))
+    cdef unsigned long long[:] s_view = s
+    cdef array.array em = array.array('L', range(3, int(sqrt(n)) + 1, 2))
+    cdef unsigned long long[:] m_view = em
     for m in m_view:
-        # if s_view[(m - 3) // 2]:
-        if s_view[(m - 3) / 2]:
-            s_view[(m * m - 3) / 2::m] = 0
-    s = np.asarray(s_view)
-    return s[s > 0]
+        if s_view[(m - 3) // 2]:
+            s_view[(m * m - 3) // 2::m] = 0
+
+    return list(filter(None, s))
 
 
-@cython.cdivision(True)    # turn division by zero checking off '/ vs //'
-def primesfrom3to(unsigned long long n):
-    """ Returns an array of primes, 3 <= p < n """
+# @cython.cdivision(True)    # turn division by zero checking off
+# @cython.boundscheck(False)  # turn array bounds check off
+# @cython.wraparound(False)  # turn negative indexing off
+def ambi_sieve_2(unsigned long long n):
+    # Mixing numpy and Cython. No practical improvement.
+    # C division gives zero gain here
+    cdef unsigned long long m
+    cdef np.ndarray[np.longlong_t, ndim=1] s = np.arange(3, n, 2, np.longlong)
+    cdef np.ndarray[np.longlong_t, ndim=1] em = np.arange(3, int(sqrt(n)) + 1, 2, np.longlong)
+    for m in em:
+        if s[(m - 3) // 2]:
+            s[(m * m - 3) // 2::m] = 0
+
+    return s[s>0]
+
+
+# @cython.cdivision(True)    # turn division by zero checking off
+# @cython.boundscheck(False)  # turn array bounds check off
+# @cython.wraparound(False)  # turn negative indexing off
+def primesfrom3to_1(unsigned long long n):
+    # Python array.array to cython view but leaving numpy zeros array sieve
+    # No effect
     cdef unsigned long long i
-    cdef sieve = np.ones(n / 2, dtype=np.bool)
+    cdef sieve = np.ones(n // 2, dtype=np.bool)
+    cdef array.array iv = array.array('L', range(3, int(sqrt(n)) + 1, 2))
+    cdef unsigned long long[:] i_view = iv
+    for i in i_view:
+        if sieve[i // 2]:
+            sieve[i * i // 2::i] = False
+    return 2 * np.nonzero(sieve)[0][1::] + 1
+
+
+# @cython.cdivision(True)    # turn division by zero checking off
+# @cython.boundscheck(False)  # turn array bounds check off
+# @cython.wraparound(False)  # turn negative indexing off
+def primesfrom3to_2(unsigned long long n):
+    # Cythonizing single array but leaving main sieve in numpy
+    # No effect
+    cdef unsigned long long i
+    cdef sieve = np.ones(n // 2, dtype=np.bool)
     cdef unsigned long long [:] i_view = np.arange(3, int(sqrt(n)) + 1, 2, np.ulonglong)
     for i in i_view:
-        if sieve[i / 2]:
-            sieve[i * i / 2::i] = False
+        if sieve[i // 2]:
+            sieve[i * i // 2::i] = False
+    return 2 * np.nonzero(sieve)[0][1::] + 1
+
+
+def primesfrom3to_3(unsigned long long n):
+    # Cythonizing numpy zeros array
+    # THIS IS IT.
+    # Nice performance gain here in already fastest algo!.
+    cdef unsigned long long i
+    cdef np.ndarray[np.uint8_t, ndim=1] sieve = np.zeros(n // 2, dtype=np.uint8)
+    for i in range(3, int(n**0.5) + 1, 2):
+        if sieve[i // 2]:
+            sieve[i * i // 2::i] = False
+    return 2 * np.nonzero(sieve)[0][1::] + 1
+
+
+def primesfrom3to_4(unsigned long long n):
+    # Cythonizing both numpy arrays.
+    # No performance gain against 3to_3 from cythonizing second array
+    # But small difference due to declaring view of sieve
+    cdef unsigned long long i
+    # cdef np.ndarray[np.uint8_t, ndim=1, mode='c'] sieve = np.zeros(n // 2, dtype=np.uint8)
+    cdef sieve = np.zeros(n // 2, dtype=np.uint8)
+    cdef unsigned char [:] sieve_view = sieve
+    cdef unsigned long long [:] i_view = np.arange(3, int(sqrt(n)) + 1, 2, np.ulonglong)
+    for i in i_view:
+        if sieve_view[i // 2]:
+            sieve_view[i * i // 2::i] = False
     return 2 * np.nonzero(sieve)[0][1::] + 1
 
 

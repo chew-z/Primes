@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
+# ULLONG_MAX +18 446 744 073 709 551 615
+
 # import libprimes
 import timeit
 import sys
 import datetime
-from tabulate import tabulate
 import prettyplotlib as ppl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,18 +29,26 @@ if __name__ == '__main__':
     datetimeformat = '%Y-%m-%d %H:%M:%S.%f'
     config = 'from __main__ import n; import pyximport; pyximport.install(); import libprimes; import cprimes'
     primenumbers_gen = {
-        'cprimes.sundaram3_1': {'color': 'b'},
-        'cprimes.sundaram3_2': {'color': 'b'},
-        'cprimes.sundaram3_2_1': {'color': 'b'},
-        'cprimes.sundaram3_3_1': {'color': 'b'},
-        'cprimes.sundaram3_3_2': {'color': 'b'},
-        'cprimes.sundaram3_3_3': {'color': 'b'},
-        'cprimes.sundaram3_4': {'color': 'b'},
-        # Benchmark
-        # 'cprimes.primesfrom3to': {'color': 'b'},
+        # 'cprimes.sundaram3_4': {'color': 'b'},
+        # 'cprimes.sundaram3_1': {'color': 'b'},
+        # 'cprimes.sundaram3_2': {'color': 'b'},
+        # 'cprimes.sundaram3_2_1': {'color': 'b'},
+        # 'cprimes.sundaram3_3_1': {'color': 'b'},
+        # 'cprimes.sundaram3_3_2': {'color': 'b'},
+        # 'cprimes.sundaram3_3_3': {'color': 'b'},
+        #
+        # 'cprimes.ambi_sieve_1': {'color': 'b'},
+        # 'cprimes.ambi_sieve_2': {'color': 'b'},
+        # 'libprimes.ambi_sieve': {'color': 'b'},
+        # Our Benchmark
+        'libprimes.primesfrom3to': {'color': 'b'},
+        # 'cprimes.primesfrom3to_1': {'color': 'b'},
+        # 'cprimes.primesfrom3to_2': {'color': 'b'},
+        'cprimes.primesfrom3to_3': {'color': 'b'},
+        'cprimes.primesfrom3to_4': {'color': 'b'},
     }
 
-    print("Compute prime number to %(n)s" % locals())
+    print("Compute prime number to {0:G}".format(n))
     print(datetime.datetime.now().strftime(datetimeformat))
     results = dict()
     for pgen in primenumbers_gen:
@@ -73,11 +82,13 @@ if __name__ == '__main__':
         print("%(pgen)s avg" % locals(), bench)
         i += 1
         label = "%(pgen)s avg" % locals()
-        # ppl.plot(nbs, bench, label=label, lw=2, color=set2[i % 12])
-        ppl.plot(nbs, bench, label=label, lw=2)
+        ppl.plot(nbs, bench, label=label, lw=2, color=set2[i % 12])
 
     ppl.legend(ax, loc='upper left', ncol=4)
     fig.canvas.draw()
     ax = plt.gca()
     plt.grid()
     plt.show()
+
+    print("Don't waist your time improving ineffective algorithm!\n \
+        Use better algo!")

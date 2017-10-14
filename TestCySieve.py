@@ -4,6 +4,7 @@ import sys
 import pyximport
 pyximport.install()
 import cprimes
+import libprimes
 
 # for i in range(1, 10):
 #     print('primes below 10**%d: %d' % (i, sieve.eratosthenes(10**i)))
@@ -22,15 +23,23 @@ if __name__ == '__main__':
         sys.exit()
 
     N = int(sys.argv[1])
-    print(cprimes.sundaram3_1(N))
-    print(cprimes.sundaram3_2(N))
-    print(cprimes.sundaram3_2_1(N))
-    print(cprimes.sundaram3_3_1(N))
-    print(cprimes.sundaram3_3_2(N))
-    print(cprimes.sundaram3_3_3(N))
-    print(cprimes.sundaram3_4(N))
-    # print(cprimes.ambi_sieve(N))
+    # print(cprimes.sundaram3_1(N))
+    # print(cprimes.sundaram3_2(N))
+    # print(cprimes.sundaram3_2_1(N))
+    # print(cprimes.sundaram3_3_1(N))
+    # print(cprimes.sundaram3_3_2(N))
+    # print(cprimes.sundaram3_3_3(N))
+    # print(cprimes.sundaram3_4(N))
+    #
+    # print(cprimes.ambi_sieve_1(N))
+    # print(cprimes.ambi_sieve_2(N))
+    # print(libprimes.ambi_sieve(N))
     # print(cprimes.prime6(N))
     # print(cprimes.primes_bitarray(N))
     # print(cprimes.primesfrom2to(N))
-    print(cprimes.primesfrom3to(N))
+    #
+    print(libprimes.primesfrom3to(N))
+    print(cprimes.primesfrom3to_1(N))
+    print(cprimes.primesfrom3to_2(N))
+    print(cprimes.primesfrom3to_3(N))
+    print(cprimes.primesfrom3to_4(N))

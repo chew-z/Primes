@@ -8,7 +8,9 @@ import prettyplotlib as ppl
 import numpy as np
 import matplotlib.pyplot as plt
 from prettyplotlib import brewer2mpl
-
+import warnings
+import matplotlib.cbook
+warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
 
 if __name__ == '__main__':
 
