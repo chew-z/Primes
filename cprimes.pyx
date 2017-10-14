@@ -1,13 +1,127 @@
+''' This is for experiments with different version of pure Python3, Numpy and 
+Cypython improvements - especially latest Cython 0.27+.
+Comparing different takes on 2-3 selected sieves.'''
+
 import math
 import cython
 import Cython.Compiler.Options; Cython.Compiler.Options.annotate = True
 cimport numpy as np
+# Add CFLAG in virtualenv to link to brew numpy
 # export CFLAGS=-I/usr/local/Cellar/numpy/1.13.3/lib/python3.6/site-packages/numpy/core/include
 import numpy as np
 from libc.math cimport sqrt
+from cpython cimport array
+import array
+
+def sundaram3_1(n):
+    # pure python3 implementation - basic case
+    numbers = list(range(3, n + 1, 2))
+    half = (n) // 2
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers[i - 1] = 0
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            return [2] + list(filter(None, numbers))
 
 
-def sundaram3(unsigned long long n):
+def sundaram3_2(n):
+    # Using numpy arrays
+    numbers = np.arange(3, n + 1, 2)
+    half = (n) // 2
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers[i - 1] = 0
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            res = np.asarray(numbers)
+            return res[res>0]
+
+
+def sundaram3_2_1(n):
+    # Using numpy arrays
+    # Declaring numbers as np.uint64 improved slightly
+    # (uint64 0 to 18446744073709551615)
+    numbers = np.arange(3, n + 1, 2, dtype=np.uint64)
+    half = (n) // 2
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers[i - 1] = 0
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            res = np.asarray(numbers)
+            return res[res>0]
+
+
+def sundaram3_3_1(n):
+    # Cython arrays from pure python3 using modern Cython arrays and views
+    # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
+    # It is actually quite effective itself for larger numbers
+    cdef array.array numbers = array.array('i', range(3, n + 1, 2))
+    cdef int[:] numbers_view = numbers
+    half = (n) // 2
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers_view[i - 1] = 0     # warning - index should be typed for
+                                        # more effective access
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            # return [2] + list(filter(None, numbers_view)) - is slower
+            return [2] + list(filter(None, numbers))
+
+
+def sundaram3_3_2(unsigned long long n):
+    # Cython arrays from pure python3 like 3_3_1 but with declared index types
+    # Not declaring index types we get Cython warning
+    # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
+    # It is actually quite effective for larger numbers
+    cdef unsigned long long step, i
+    cdef array.array numbers = array.array('i', range(3, n + 1, 2))
+    cdef int[:] numbers_view = numbers
+    half = (n) // 2
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers_view[i - 1] = 0
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            return [2] + list(filter(None, numbers))
+
+
+@cython.cdivision(True)     # turn division by zero checking off - C division
+@cython.boundscheck(False)  # turn array bounds check off
+@cython.wraparound(False)  # turn negative indexing off
+def sundaram3_3_3(unsigned long long n):
+    # Cython arrays from pure python3 like 3_3_2 but with checks off
+    # http://cython.readthedocs.io/en/latest/src/tutorial/array.html
+    # It is actually most effective so far
+    cdef unsigned long long step, half, initial, i
+    cdef array.array numbers = array.array('i', range(3, n + 1, 2))
+    cdef int[:] numbers_view = numbers
+    half = (n) / 2  # here we could use / in place of // (switching cdivision)
+    initial = 4
+    for step in range(3, n + 1, 2):
+        for i in range(initial, half, step):
+            numbers_view[i - 1] = 0
+        initial += 2 * (step + 1)
+
+        if initial > half:
+            return [2] + list(filter(None, numbers))
+
+
+def sundaram3_4(unsigned long long n):
+    # Mixing numpy arrays and cython array views
+    # Seems like consistently the worst solution
+    #
     cdef unsigned long long s, i
     # cdef np.ndarray[np.longlong_t, ndim=1] numbers = np.arange(3, n + 1, 2, np.longlong)
     cdef unsigned long long [:] numbers_view = np.arange(3, n + 1, 2, np.ulonglong)
@@ -41,18 +155,6 @@ def ambi_sieve(unsigned long long n):
     return s[s > 0]
 
 
-def primesfrom2to(unsigned long long n):
-    """ Input n>=6, Returns a array of primes, 2 <= p < n """
-    cdef unsigned long long i, k
-    cdef sieve = np.ones(n // 3 + (n % 6 == 2), dtype=np.bool)
-    for i in np.arange(1, int(sqrt(n)) // 3 + 1):
-        if sieve[i]:
-            k = 3 * i + 1 | 1
-            sieve[k * k // 3::2 * k] = False
-            sieve[k * (k - 2 * (i & 1) + 4) // 3::2 * k] = False
-    return np.r_[2, 3, ((3 * np.nonzero(sieve)[0][1:] + 1) | 1)]
-
-
 @cython.cdivision(True)    # turn division by zero checking off '/ vs //'
 def primesfrom3to(unsigned long long n):
     """ Returns an array of primes, 3 <= p < n """
@@ -63,19 +165,6 @@ def primesfrom3to(unsigned long long n):
         if sieve[i / 2]:
             sieve[i * i / 2::i] = False
     return 2 * np.nonzero(sieve)[0][1::] + 1
-
-
-def primes_bitarray(unsigned long long n):
-    from bitarray import bitarray
-    cdef unsigned long long i
-    cdef size = n // 2
-    sieve = bitarray(size)
-    sieve.setall(1)
-    for i in range(1, int(sqrt(n))):
-        if sieve[i]:
-            val = 2 * i + 1
-            sieve[(i + i * val)::val] = False
-    return np.r_[2, ((2 * np.nonzero(sieve)[0][1:] + 1) | 1)]
 
 
 def prime6(unsigned long long n):
@@ -98,49 +187,4 @@ def ajs_primes3a(unsigned long long n):
         sieve[idx * 2::idx] = False
     return np.where(sieve)[0]
 
-
-def primes(int nmax):       # declare types of parameters
-    cdef int n, k, i        # declare types of variables
-    cdef int p[10000]        # including arrays
-    result = []             # can still use normal Python types
-    kmax = 10000
-    if kmax > 10000:         # in this case need to hardcode limit
-        kmax = 10000
-    k = 0
-    n = 2
-    while k < kmax and n < nmax:
-        i = 0
-        while i < k and n % p[i] != 0:
-            i += 1
-        if i == k:
-            p[k] = n
-            k += 1
-            result.append(n)
-        n += 1
-    return result  # return Python object
-
-
-def nth_prime(unsigned long long n):
-    cdef unsigned long long prime_count
-    cdef unsigned long long num
-
-    def _is_prime(unsigned long long num):
-        cdef unsigned long long i
-        for i in range(3, int(sqrt(num))+1, 2):
-            if num % i == 0:
-                return False
-        return True
-
-    assert n > 0
-    if n == 1:
-        return 2
-    if n == 2:
-        return 3
-    prime_count = 2
-    num = 3
-    while prime_count != n:
-        num += 2
-        if _is_prime(num):
-            prime_count += 1
-    return num
 
