@@ -10,20 +10,6 @@ import matplotlib.pyplot as plt
 from prettyplotlib import brewer2mpl
 
 
-primenumbers_gen = [
-    'ambi_sieve',
-    'sundaram3',
-    'primesfrom3to',
-    'primesfrom2to',
-    'rwh_primes2_python3',
-    'prime6',
-    'pyprimesieve',
-    'primes_simpy',
-    'primes_bitarray',
-    'ajs_primes3a'
-]
-
-
 if __name__ == '__main__':
 
     # Parse command line options
@@ -32,22 +18,29 @@ if __name__ == '__main__':
         sys.exit()
     N = int(sys.argv[1])
     n = 10**N
-    nbs = np.array([10**i for i in range(1, N + 1)])
+    nbs = np.array([10**i for i in range(4, N + 1)])
 
     nb_benchloop = 3
     datetimeformat = '%Y-%m-%d %H:%M:%S.%f'
-    config = 'from __main__ import n; import libprimes'
+    config = 'from __main__ import n; import pyximport; pyximport.install(); import libprimes; import cprimes'
     primenumbers_gen = {
-        'ambi_sieve': {'color': 'b'},
-        'rwh_primes2_python3': {'color': 'b'},
-        'sundaram3': {'color': 'b'},
-        'primesfrom2to': {'color': 'b'},
-        'primesfrom3to': {'color': 'b'},
-        'primes_simpy': {'color': 'b'},
-        'prime6': {'color': 'b'},
-        'pyprimesieve': {'color': 'b'},
-        'primes_bitarray': {'color': 'b'},
-        'ajs_primes3a': {'color': 'b'},
+        # 'rwh_primes2_python3': {'color': 'b'},
+        # 'libprimes.sundaram3': {'color': 'b'},
+        # 'cprimes.sundaram3': {'color': 'b'},
+        # 'primes_simpy': {'color': 'b'},
+        # 'libprimes.prime6': {'color': 'b'},
+        # 'cprimes.prime6': {'color': 'b'},
+        # 'pyprimesieve': {'color': 'b'},
+        # 'libprimes.primes_bitarray': {'color': 'b'},
+        # 'cprimes.primes_bitarray': {'color': 'b'},
+        # 'libprimes.ajs_primes3a': {'color': 'b'},
+        # 'cprimes.ajs_primes3a': {'color': 'b'},
+        'libprimes.ambi_sieve': {'color': 'b'},
+        'cprimes.ambi_sieve': {'color': 'b'},
+        # 'libprimes.primesfrom2to': {'color': 'b'},
+        # 'cprimes.primesfrom2to': {'color': 'b'},
+        'libprimes.primesfrom3to': {'color': 'b'},
+        'cprimes.primesfrom3to': {'color': 'b'},
     }
 
     print("Compute prime number to %(n)s" % locals())
@@ -57,7 +50,10 @@ if __name__ == '__main__':
         results[pgen] = dict()
         benchtimes = list()
         for n in nbs:
-            t = timeit.Timer("libprimes.%(pgen)s(n)" % locals(), setup=config)
+            # t = timeit.Timer("libprimes.%(pgen)s(n)" % locals(), setup=config)
+            t = timeit.Timer("%(pgen)s(n)" % locals(), setup=config)
+            # execute = timeit.Timer("libprimes.%(pgen)s(n)" % locals(), setup=config)
+            execute = timeit.Timer("%(pgen)s(n)" % locals(), setup=config)
             execute_times = t.repeat(repeat=nb_benchloop, number=1)
             benchtime = np.mean(execute_times)
             benchtimes.append(benchtime)

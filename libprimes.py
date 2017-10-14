@@ -145,7 +145,7 @@ def prime6(n):
     from math import sqrt
     primes = np.arange(3, n + 1, 2)
     isprime = np.ones((n - 1) // 2, dtype=bool)
-    for factor in primes[:int(sqrt(n))]:
+    for factor in primes[:int(n**0.5)]:
         if isprime[(factor - 2) // 2]:
             isprime[(factor * 3 - 2) // 2:(n - 1) // 2:factor] = False
     return np.insert(primes[isprime], 0, 2)
