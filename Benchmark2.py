@@ -44,8 +44,11 @@ if __name__ == '__main__':
         'libprimes.primesfrom3to': {'color': 'b'},
         # 'cprimes.primesfrom3to_1': {'color': 'b'},
         # 'cprimes.primesfrom3to_2': {'color': 'b'},
-        'cprimes.primesfrom3to_3': {'color': 'b'},
+        # 'cprimes.primesfrom3to_3': {'color': 'b'},
         'cprimes.primesfrom3to_4': {'color': 'b'},
+        # 'cprimes.primesfrom3to_5': {'color': 'b'},
+        'cprimes.cprimes1': {'color': 'b'},
+        # 'cprimes.cprimes2': {'color': 'b'},
     }
 
     print("Compute prime number to {0:G}".format(n))

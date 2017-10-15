@@ -17,6 +17,69 @@ import numpy as np
 from libc.math cimport sqrt
 from cpython cimport array
 import array
+from libc.stdlib cimport malloc, free
+from libc.string cimport memset
+
+cdef extern from "stdbool.h":
+    ctypedef bint bool
+
+cdef unsigned long long div(unsigned long long x, unsigned long long y):
+    return x/y
+
+
+cdef bool * getPrimes1(unsigned long long n):
+    # like primesfrom3to
+    cdef unsigned long long i, j, half, sq
+    half = div(n, 2)
+    sq = int(n**0.5) + 1
+    cdef bool *primes = <bool*>malloc(half * sizeof(bool))
+    memset(primes, 1, half * sizeof(bool))
+    # There is big gain from changing for loops to while
+    i = 3
+    while i < sq:
+        if primes[div(i, 2)]:
+            j = div(i * i, 2)
+            while j < half:
+                primes[j] = False
+                j += i
+        i += 2
+    return primes;
+
+
+def cprimes1(unsigned long long n):
+    res = <bool[:n // 2]> (getPrimes1(n))
+    return 2 * np.nonzero(res)[0][1::] + 1
+
+
+cdef bool * getPrimes2(unsigned long long n):
+    # like ajs_primes3a
+    cdef bool *primes = <bool*>malloc(n * sizeof(bool))
+    memset(primes, 1, n * sizeof(bool))
+    cdef unsigned long long i, j, half, sq
+    half = div(n, 2)
+    sq = int(sqrt(n)) + 1
+
+    primes[0] = False
+    primes[1] = False
+    primes[2] = False
+    i = 4
+    # There is big gain from changing for loops to while
+    while i < n:
+        primes[i] = False
+        i += 2
+    i = 3
+    while i < sq:
+        j = i * 2
+        while j < n:
+            primes[j] = False
+            j += i
+        i += 2
+    return primes;
+
+
+def cprimes2(unsigned long long n):
+    res = np.asarray(<bool[:n]> (getPrimes2(n)))
+    return np.where(res)[0]
 
 
 def sundaram3_1(n):
@@ -134,14 +197,20 @@ def sundaram3_4(unsigned long long n):
     cdef unsigned long long initial = 4
     cdef unsigned long long [:] s_view = np.arange(3, n + 1, 2, np.ulonglong)
     cdef unsigned long long [:] i_view
-    for s in s_view:
+    s = 3
+    while s in s_view:
+    # for s in s_view:
         i_view =  np.arange(initial, half, s, np.ulonglong)
-        for i in i_view:
+        i = initial
+        while i in i_view:
+        #for i in i_view:
             numbers_view[i - 1] = 0
+            i += s
         initial += 2 * (s + 1)
         if initial > half:
             numbers = np.asarray(numbers_view)
             return numbers[numbers>0]
+        i += 2
 
 
 def ambi_sieve_1(unsigned long long n):
@@ -207,10 +276,8 @@ def primesfrom3to_2(unsigned long long n):
 
 def primesfrom3to_3(unsigned long long n):
     # Cythonizing numpy zeros array
-    # THIS IS IT.
-    # Nice performance gain here in already fastest algo!.
     cdef unsigned long long i
-    cdef np.ndarray[np.uint8_t, ndim=1] sieve = np.zeros(n // 2, dtype=np.uint8)
+    cdef np.ndarray[np.uint8_t, ndim=1] sieve = np.ones(n // 2, dtype=np.uint8)
     for i in range(3, int(n**0.5) + 1, 2):
         if sieve[i // 2]:
             sieve[i * i // 2::i] = False
@@ -219,23 +286,37 @@ def primesfrom3to_3(unsigned long long n):
 
 def primesfrom3to_4(unsigned long long n):
     # Cythonizing both numpy arrays.
-    # No performance gain against 3to_3 from cythonizing second array
-    # But small difference due to declaring view of sieve
-    cdef unsigned long long i
-    # cdef np.ndarray[np.uint8_t, ndim=1, mode='c'] sieve = np.zeros(n // 2, dtype=np.uint8)
-    cdef sieve = np.zeros(n // 2, dtype=np.uint8)
+    cdef unsigned long long i, half, i2, k
+    half = n // 2
+    cdef sieve = np.ones(half, dtype=np.uint8)
     cdef unsigned char [:] sieve_view = sieve
     cdef unsigned long long [:] i_view = np.arange(3, int(sqrt(n)) + 1, 2, np.ulonglong)
     for i in i_view:
-        if sieve_view[i // 2]:
-            sieve_view[i * i // 2::i] = False
-    return 2 * np.nonzero(sieve)[0][1::] + 1
+        i2 = i // 2
+        if sieve_view[i2]:
+            k =  i * i // 2
+            sieve_view[k::i] = False
+    return 2 * np.nonzero(sieve_view)[0][1::] + 1
+
+
+def primesfrom3to_5(unsigned long long n):
+    # Terrible idea
+    cdef unsigned long long i, j, half
+    half = div(n, 2)
+    cdef array.array sieve = array.array('B', [1] * (half))
+    cdef unsigned char [:] sieve_view = sieve
+    for i in range(3, int(sqrt(n)) + 1, 2):
+        if sieve[div(i, 2)]:
+            for j in range(div(i*i, 2), half, i):
+                sieve[j] = False
+    return 2 * np.nonzero(sieve_view)[0][1::] + 1
+    # return np.asarray(sieve_view)
 
 
 def prime6(unsigned long long n):
     cdef unsigned long long factor
     cdef np.ndarray[np.longlong_t, ndim=1] primes = np.arange(3, n + 1, 2)
-    cdef isprime = np.ones((n - 1) // 2, dtype=bool)
+    cdef isprime = np.ones((n - 1) // 2, dtype=np.bool)
     for factor in primes[:int(sqrt(n))]:
         if isprime[(factor - 2) // 2]:
             isprime[(factor * 3 - 2) // 2:(n - 1) // 2:factor] = False
@@ -244,7 +325,7 @@ def prime6(unsigned long long n):
 
 def ajs_primes3a(unsigned long long n):
     cdef unsigned long long idx
-    cdef sieve = np.ones((n), dtype=bool)
+    cdef sieve = np.ones((n), dtype=np.bool)
     sieve[0] = False
     sieve[1] = False
     sieve[4::2] = False

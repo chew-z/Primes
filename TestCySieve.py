@@ -39,7 +39,10 @@ if __name__ == '__main__':
     # print(cprimes.primesfrom2to(N))
     #
     print(libprimes.primesfrom3to(N))
-    print(cprimes.primesfrom3to_1(N))
-    print(cprimes.primesfrom3to_2(N))
-    print(cprimes.primesfrom3to_3(N))
+    # print(cprimes.primesfrom3to_1(N))
+    # print(cprimes.primesfrom3to_2(N))
+    # print(cprimes.primesfrom3to_3(N))
     print(cprimes.primesfrom3to_4(N))
+    print(cprimes.primesfrom3to_5(N))
+    print(cprimes.cprimes1(N))
+    # print(cprimes.cprimes2(N))
