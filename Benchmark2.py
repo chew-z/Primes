@@ -27,8 +27,10 @@ if __name__ == '__main__':
 
     nb_benchloop = 3
     datetimeformat = '%Y-%m-%d %H:%M:%S.%f'
-    config = 'from __main__ import n; import pyximport; pyximport.install(); import libprimes; import cprimes'
+    config = 'from __main__ import n; import pyximport; pyximport.install(); \
+        import libprimes; import cprimes; import fprimes; import fp'
     primenumbers_gen = {
+        # 'libprimes.sundaram3': {'color': 'b'},
         # 'cprimes.sundaram3_4': {'color': 'b'},
         # 'cprimes.sundaram3_1': {'color': 'b'},
         # 'cprimes.sundaram3_2': {'color': 'b'},
@@ -44,11 +46,12 @@ if __name__ == '__main__':
         'libprimes.primesfrom3to': {'color': 'b'},
         # 'cprimes.primesfrom3to_1': {'color': 'b'},
         # 'cprimes.primesfrom3to_2': {'color': 'b'},
-        # 'cprimes.primesfrom3to_3': {'color': 'b'},
-        'cprimes.primesfrom3to_4': {'color': 'b'},
+        'cprimes.primesfrom3to_3': {'color': 'b'},
+        # 'cprimes.primesfrom3to_4': {'color': 'b'},
         # 'cprimes.primesfrom3to_5': {'color': 'b'},
-        'cprimes.cprimes1': {'color': 'b'},
-        # 'cprimes.cprimes2': {'color': 'b'},
+        'cprimes.cprimes_primesfrom3to': {'color': 'b'},
+        'fp.primes': {'color': 'b'},
+        # 'cprimes.cprimes_ajs': {'color': 'b'},
     }
 
     print("Compute prime number to {0:G}".format(n))
@@ -58,9 +61,7 @@ if __name__ == '__main__':
         results[pgen] = dict()
         benchtimes = list()
         for n in nbs:
-            # t = timeit.Timer("libprimes.%(pgen)s(n)" % locals(), setup=config)
             t = timeit.Timer("%(pgen)s(n)" % locals(), setup=config)
-            # execute = timeit.Timer("libprimes.%(pgen)s(n)" % locals(), setup=config)
             execute = timeit.Timer("%(pgen)s(n)" % locals(), setup=config)
             execute_times = t.repeat(repeat=nb_benchloop, number=1)
             benchtime = np.mean(execute_times)
