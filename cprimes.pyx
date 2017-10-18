@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ''' This is for experiments with different version of pure Python3, Numpy and 
 Cython improvements - especially latest Cython 0.27+.
 Comparing different takes on 2-3 selected sieves.
@@ -14,7 +15,7 @@ cimport numpy as np
 # Add CFLAG in virtualenv to link to brew numpy
 # export CFLAGS=-I/usr/local/Cellar/numpy/1.13.3/lib/python3.6/site-packages/numpy/core/include
 import numpy as np
-from libc.math cimport sqrt
+# from libc.math cimport sqrt
 from cpython cimport array
 import array
 from libc.stdlib cimport malloc, free
@@ -23,22 +24,31 @@ from libc.string cimport memset
 cdef extern from "stdbool.h":
     ctypedef bint bool
 
-cdef unsigned long long div(unsigned long long x, unsigned long long y):
+
+cdef extern from "math.h":
+    double sqrt(double m)
+
+
+# cdef extern from "math.h":
+#     int div(int x, int y)
+
+
+cdef unsigned long long divx(unsigned long long x, unsigned long long y):
     return x/y
 
 
 cdef bool * getPrimes1(unsigned long long n):
     # like primesfrom3to
     cdef unsigned long long i, j, half, sq
-    half = div(n, 2)
+    half = divx(n, 2)
     sq = int(n**0.5) + 1
     cdef bool *primes = <bool*>malloc(half * sizeof(bool))
     memset(primes, 1, half * sizeof(bool))
-    # There is big gain from changing for loops to while
+    # There is big gain here from changing for loops to while
     i = 3
     while i < sq:
-        if primes[div(i, 2)]:
-            j = div(i * i, 2)
+        if primes[divx(i, 2)]:
+            j = divx(i * i, 2)
             while j < half:
                 primes[j] = False
                 j += i
@@ -46,7 +56,7 @@ cdef bool * getPrimes1(unsigned long long n):
     return primes;
 
 
-def cprimes1(unsigned long long n):
+def cprimes_primesfrom3to(unsigned long long n):
     res = <bool[:n // 2]> (getPrimes1(n))
     return 2 * np.nonzero(res)[0][1::] + 1
 
@@ -56,7 +66,7 @@ cdef bool * getPrimes2(unsigned long long n):
     cdef bool *primes = <bool*>malloc(n * sizeof(bool))
     memset(primes, 1, n * sizeof(bool))
     cdef unsigned long long i, j, half, sq
-    half = div(n, 2)
+    half = divx(n, 2)
     sq = int(sqrt(n)) + 1
 
     primes[0] = False
@@ -77,7 +87,7 @@ cdef bool * getPrimes2(unsigned long long n):
     return primes;
 
 
-def cprimes2(unsigned long long n):
+def cprimes_ajs(unsigned long long n):
     res = np.asarray(<bool[:n]> (getPrimes2(n)))
     return np.where(res)[0]
 
@@ -85,7 +95,7 @@ def cprimes2(unsigned long long n):
 def sundaram3_1(n):
     # pure python3 implementation - basic case
     numbers = list(range(3, n + 1, 2))
-    half = (n) // 2
+    half = n // 2
     initial = 4
     for step in range(3, n + 1, 2):
         for i in range(initial, half, step):
@@ -302,12 +312,12 @@ def primesfrom3to_4(unsigned long long n):
 def primesfrom3to_5(unsigned long long n):
     # Terrible idea
     cdef unsigned long long i, j, half
-    half = div(n, 2)
+    half = divx(n, 2)
     cdef array.array sieve = array.array('B', [1] * (half))
     cdef unsigned char [:] sieve_view = sieve
     for i in range(3, int(sqrt(n)) + 1, 2):
-        if sieve[div(i, 2)]:
-            for j in range(div(i*i, 2), half, i):
+        if sieve[divx(i, 2)]:
+            for j in range(divx(i*i, 2), half, i):
                 sieve[j] = False
     return 2 * np.nonzero(sieve_view)[0][1::] + 1
     # return np.asarray(sieve_view)

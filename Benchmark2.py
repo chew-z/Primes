@@ -28,7 +28,7 @@ if __name__ == '__main__':
     nb_benchloop = 3
     datetimeformat = '%Y-%m-%d %H:%M:%S.%f'
     config = 'from __main__ import n; import pyximport; pyximport.install(); \
-        import libprimes; import cprimes; import fprimes; import fp'
+        import libprimes; import cprimes; import TestFortran'
     primenumbers_gen = {
         # 'libprimes.sundaram3': {'color': 'b'},
         # 'cprimes.sundaram3_4': {'color': 'b'},
@@ -38,6 +38,8 @@ if __name__ == '__main__':
         # 'cprimes.sundaram3_3_1': {'color': 'b'},
         # 'cprimes.sundaram3_3_2': {'color': 'b'},
         # 'cprimes.sundaram3_3_3': {'color': 'b'},
+        #
+        # 'cprimes.cprimes_ajs': {'color': 'b'},
         #
         # 'cprimes.ambi_sieve_1': {'color': 'b'},
         # 'cprimes.ambi_sieve_2': {'color': 'b'},
@@ -50,8 +52,12 @@ if __name__ == '__main__':
         # 'cprimes.primesfrom3to_4': {'color': 'b'},
         # 'cprimes.primesfrom3to_5': {'color': 'b'},
         'cprimes.cprimes_primesfrom3to': {'color': 'b'},
-        'fp.primes': {'color': 'b'},
-        # 'cprimes.cprimes_ajs': {'color': 'b'},
+        # Breaks with error
+        # malloc: *** error for object 0x7feb99a2ac00: incorrect checksum for
+        # freed object - object was probably modified after being freed
+        # https://stackoverflow.com/questions/35944478
+        # https://stackoverflow.com/questions/12309161/malloc-error-in-f2py
+        'TestFortran.primes': {'color': 'b'},
     }
 
     print("Compute prime number to {0:G}".format(n))

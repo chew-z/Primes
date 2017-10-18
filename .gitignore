@@ -99,3 +99,5 @@ ENV/
 
 # mypy
 .mypy_cache/
+fibo.cpython-36m-darwin.so.dSYM
+fprimes.cpython-36m-darwin.so.dSYM
