@@ -48,16 +48,18 @@ if __name__ == '__main__':
         'libprimes.primesfrom3to': {'color': 'b'},
         # 'cprimes.primesfrom3to_1': {'color': 'b'},
         # 'cprimes.primesfrom3to_2': {'color': 'b'},
-        'cprimes.primesfrom3to_3': {'color': 'b'},
+        # 'cprimes.primesfrom3to_3': {'color': 'b'},
         # 'cprimes.primesfrom3to_4': {'color': 'b'},
         # 'cprimes.primesfrom3to_5': {'color': 'b'},
-        'cprimes.cprimes_primesfrom3to': {'color': 'b'},
+        # 'cprimes.cprimes_primesfrom3to': {'color': 'b'},
         # Breaks with error
         # malloc: *** error for object 0x7feb99a2ac00: incorrect checksum for
         # freed object - object was probably modified after being freed
         # https://stackoverflow.com/questions/35944478
         # https://stackoverflow.com/questions/12309161/malloc-error-in-f2py
-        'TestFortran.primes': {'color': 'b'},
+        # 'TestFortran.primes': {'color': 'b'},
+        'TestFortran.primes2': {'color': 'b'},
+        # 'TestFortran.primes3': {'color': 'b'},
     }
 
     print("Compute prime number to {0:G}".format(n))
